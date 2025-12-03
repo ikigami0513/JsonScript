@@ -28,6 +28,6 @@ while (i < len(users)) {
 }
 
 print "Sauvegarde..."
-write_csv("users_upper.csv", users)
+write_csv("examples/users_upper.csv", users)
 
 print_color("Terminé avec succès !", "green")
