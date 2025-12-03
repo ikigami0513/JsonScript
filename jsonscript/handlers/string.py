@@ -16,7 +16,8 @@ class StringHandler(BaseHandler):
             "replace", 
             "upper", 
             "lower",
-            "parse_json"
+            "parse_json",
+            "to_json"
         }
 
     def handle(self, command: str, args: List[Any], env: Environment, evaluator: EvaluatorFunc) -> Any:
@@ -48,6 +49,15 @@ class StringHandler(BaseHandler):
                 return json.loads(json_str)
             except json.JSONDecodeError as e:
                 raise ValueError(f"Failed to parse JSON string: {e}")
+        
+        if command == "to_json":
+            # ["to_json", variable]
+            target = evaluator(args[0], env)
+            try:
+                # separators=(',', ':') compacte le JSON (enlève les espaces inutiles)
+                return json.dumps(target, separators=(',', ':'))
+            except TypeError as e:
+                raise ValueError(f"Cannot serialize to JSON: {e}")
 
         raise ValueError(f"StringHandler cannot handle: {command}")
     

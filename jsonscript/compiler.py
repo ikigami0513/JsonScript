@@ -273,7 +273,7 @@ class Parser:
                     # Maths
                     "sqrt", "pow", "abs", "round", "floor", "ceil", "random", "randint", "PI", "to_int",
                     # Strings
-                    "split", "replace", "upper", "lower", "concat", "parse_json",
+                    "split", "replace", "upper", "lower", "concat", "parse_json", "to_json",
                     # Collection / Core
                     "len", "at", "type",
                     # Time
