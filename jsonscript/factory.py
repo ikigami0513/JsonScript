@@ -89,12 +89,6 @@ class InstructionFactory:
                 raise ValueError("Invalid input.")
             return InputInstruction(var_name=raw_instruction[1], prompt=raw_instruction[2])
         
-        elif command_type == "write_file":
-            # Syntax: ["write_file", "path/to/file.txt", ["get", "content"]]
-            if len(raw_instruction) < 3:
-                raise ValueError("Invalid write_file.")
-            return WriteFileInstruction(path_expr=raw_instruction[1], content_expr=raw_instruction[2])
-        
         elif command_type == "import":
             # Syntax: ["import", "lib/math.json"]
             return ImportInstruction(path_expression=raw_instruction[1])
@@ -151,5 +145,11 @@ class InstructionFactory:
             return SwitchInstruction(raw_instruction[1], raw_instruction[2], default_block)
 
         else:
+            # Si la commande est une chaîne de caractères (ex: "fs_mkdir", "exec"),
+            # on suppose que c'est une Expression native utilisée comme Instruction.
+            if isinstance(command_type, str):
+                return ExpressionInstruction(raw_instruction)
+            
+            # Sinon, c'est vraiment une erreur
             raise ValueError(f"Unknown command: {command_type}")
         

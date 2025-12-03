@@ -1,16 +1,17 @@
-[project]
+[tool.poetry]
 name = "jsonscript"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Your Name",email = "you@example.com"}
-]
+# Poetry 1.x expects strings for authors, not inline tables
+authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-]
 
+[tool.poetry.dependencies]
+# This defines the python requirement. 
+# I changed 3.14 to 3.10 to match current stable versions.
+python = "^3.10"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+# Standard build system for Poetry
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

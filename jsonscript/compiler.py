@@ -348,14 +348,20 @@ class Parser:
                     "sqrt", "pow", "abs", "round", "floor", "ceil", "random", "randint", "PI", "to_int",
                     # Strings
                     "split", "replace", "upper", "lower", "concat", "parse_json", "to_json",
+                    # Advanced Strings
+                    "trim", "substring", "contains", "index_of", "starts_with", "ends_with",
                     # Collection / Core
                     "len", "at", "type",
                     # Time
                     "now", "timestamp", "format_date",
                     # Sys / IO
-                    "os_name", "cwd", "env", "exec", "read_file",
+                    "os_name", "cwd", "env", "exec", "read_file", "write_file",
                     # Web
-                    "http_get", "http_post"
+                    "http_get", "http_post",
+                    # Filesystem
+                    "fs_exists", "fs_list", "fs_remove", "fs_mkdir", "fs_copy",
+                    # Crypto
+                    "hash_md5", "hash_sha256", "base64_encode", "base64_decode",
                 ]
                 
                 if name in NATIVE_COMMANDS:

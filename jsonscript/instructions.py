@@ -206,19 +206,6 @@ class InputInstruction(Instruction):
         environment.set_variable(self.var_name, user_input)
 
 
-class WriteFileInstruction(Instruction):
-    def __init__(self, path_expr, content_expr):
-        self.path_expr = path_expr
-        self.content_expr = content_expr
-
-    def execute(self, env):
-        path = str(ExpressionEvaluator.evaluate(self.path_expr, env))
-        content = str(ExpressionEvaluator.evaluate(self.content_expr, env))
-
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
-
-
 class ImportInstruction(Instruction):
     def __init__(self, path_expression):
         self.path_expression = path_expression
@@ -396,3 +383,16 @@ class SwitchInstruction(Instruction):
         if not match_found and self.default_block:
             for raw_inst in self.default_block:
                 InstructionFactory.build(raw_inst).execute(environment)
+
+
+class ExpressionInstruction(Instruction):
+    """
+    Executes a standalone expression (e.g. ["fs_mkdir", "path"] or ["exec", "cmd"]).
+    Useful for native commands that have side effects but no return value capture.
+    """
+    def __init__(self, raw_expression: List[Any]):
+        self.raw_expression = raw_expression
+
+    def execute(self, environment: Environment):
+        # On utilise l'évaluateur pour exécuter la logique
+        ExpressionEvaluator.evaluate(self.raw_expression, environment)

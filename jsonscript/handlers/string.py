@@ -17,7 +17,13 @@ class StringHandler(BaseHandler):
             "upper", 
             "lower",
             "parse_json",
-            "to_json"
+            "to_json",
+            "trim",
+            "substring",
+            "contains",
+            "index_of",
+            "starts_with",
+            "ends_with"
         }
 
     def handle(self, command: str, args: List[Any], env: Environment, evaluator: EvaluatorFunc) -> Any:
@@ -59,5 +65,26 @@ class StringHandler(BaseHandler):
             except TypeError as e:
                 raise ValueError(f"Cannot serialize to JSON: {e}")
 
+        if command == "trim":
+            return eval_str(0).strip()
+
+        if command == "contains":
+            return eval_str(1) in eval_str(0)
+
+        if command == "starts_with":
+            return eval_str(0).startswith(eval_str(1))
+
+        if command == "ends_with":
+            return eval_str(0).endswith(eval_str(1))
+
+        if command == "index_of":
+            return eval_str(0).find(eval_str(1))
+
+        if command == "substring":
+            text = eval_str(0)
+            start = int(evaluator(args[1], env))
+            end = int(evaluator(args[2], env))
+            return text[start:end]
+        
         raise ValueError(f"StringHandler cannot handle: {command}")
     
