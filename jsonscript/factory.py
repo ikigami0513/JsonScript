@@ -128,6 +128,16 @@ class InstructionFactory:
         elif command_type == "set_attr":
             # ["set_attr", obj, attr, val]
             return SetAttrInstruction(raw_expression=raw_instruction)
+        
+        elif command_type == "throw":
+            # ["throw", "Message d'erreur"]
+            return ThrowInstruction(message_expression=raw_instruction[1])
+        
+        elif command_type == "assert":
+            # ["assert", condition, "Message si faux"]
+            if len(raw_instruction) < 3: 
+                raise ValueError("Invalid assert.")
+            return AssertInstruction(condition=raw_instruction[1], error_message=raw_instruction[2])
 
         else:
             raise ValueError(f"Unknown command: {command_type}")

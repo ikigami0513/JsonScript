@@ -1,0 +1,61 @@
+[
+    ["print", "--- TEST VALIDATION & ASSERT ---"],
+
+    ["comment", "1. Définition d'une fonction 'safe'"],
+    ["function", "register_user", ["age", "password"], [
+        
+        ["comment", "Vérification interne (Assert) - pour le développeur"],
+        ["assert", [">", ["len", ["get", "password"]], 0], "Password cannot be empty (Internal Error)"],
+
+        ["comment", "Validation métier (Throw) - pour l'utilisateur"],
+        ["if", ["<", ["get", "age"], 18],
+            [
+                ["throw", "User must be 18+"]
+            ]
+        ],
+
+        ["if", ["<", ["len", ["get", "password"]], 6],
+            [
+                ["throw", "Password too short (min 6 chars)"]
+            ]
+        ],
+
+        ["print", "User registered successfully!"]
+    ]],
+
+
+    ["comment", "2. Scénarios de test"],
+
+    ["print", "\nScenario A: Trop jeune"],
+    ["try",
+        [
+            ["call", "register_user", 15, "secret123"]
+        ],
+        "err",
+        [
+            ["print", "❌ Erreur attrapée : ", ["get", "err"]]
+        ]
+    ],
+
+    ["print", "\nScenario B: Mot de passe court"],
+    ["try",
+        [
+            ["call", "register_user", 25, "123"]
+        ],
+        "err",
+        [
+            ["print", "❌ Erreur attrapée : ", ["get", "err"]]
+        ]
+    ],
+
+    ["print", "\nScenario C: Tout est bon"],
+    ["try",
+        [
+            ["call", "register_user", 25, "super_secret"]
+        ],
+        "err",
+        [
+            ["print", "Ce message ne doit pas s'afficher."]
+        ]
+    ]
+]

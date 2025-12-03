@@ -312,3 +312,26 @@ class SetAttrInstruction(Instruction):
     def execute(self, environment: Environment):
         # Idem, permet de faire ["set_attr", obj, "val", 10] sans le mettre dans un "set"
         ExpressionEvaluator.evaluate(self.raw_expression, environment)
+
+
+class ThrowInstruction(Instruction):
+    def __init__(self, message_expression: Any):
+        self.message_expression = message_expression
+
+    def execute(self, environment: Environment):
+        # On évalue le message d'erreur
+        msg = str(ExpressionEvaluator.evaluate(self.message_expression, environment))
+        # On lève une exception Python standard. 
+        # Ton TryCatchInstruction existant l'attrapera automatiquement !
+        raise RuntimeError(msg)
+
+class AssertInstruction(Instruction):
+    def __init__(self, condition: Any, error_message: Any):
+        self.condition = condition
+        self.error_message = error_message
+
+    def execute(self, environment: Environment):
+        # Si la condition est FAUSSE, on lève l'erreur
+        if not ExpressionEvaluator.evaluate(self.condition, environment):
+            msg = str(ExpressionEvaluator.evaluate(self.error_message, environment))
+            raise AssertionError(f"Assertion Failed: {msg}")
