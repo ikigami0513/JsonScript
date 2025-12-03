@@ -6,7 +6,6 @@ TOKEN_SPEC = [
     ('COMMENT', r'//.*'),
     ('STRING',  r'"[^"]*"'),
     ('NUMBER',  r'\d+'),
-    # AJOUT DE 'import' DANS LES MOTS-CLÉS
     ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default|throw|assert)\b'),
     ('ID',      r'[a-zA-Z_]\w*'),
     ('OP_CMP',  r'(==|!=|<=|>=|<|>)'),
@@ -388,7 +387,8 @@ class Parser:
                     # TUI
                     "print_color", "clear_screen", "input_password",
                     # GUI
-                    "gui_new", "gui_set", "gui_show", "gui_on", "gui_quit", "gui_title", "gui_size", "gui_get", "gui_grid", "gui_place"
+                    "gui_new", "gui_set", "gui_show", "gui_on", "gui_quit", "gui_title", "gui_size", "gui_get", 
+                    "gui_grid", "gui_place", "gui_alert", "gui_confirm", "gui_open_file", "gui_save_file"
                 ]
                 
                 if name in NATIVE_COMMANDS:

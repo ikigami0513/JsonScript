@@ -1,63 +1,64 @@
-// selection_test.jss
+// advanced_gui.jss
 
-gui_title("Widgets de Sélection de JsonScript")
-gui_size(800, 600)
+gui_title("Application Avancée JsonScript")
+gui_size(600, 300)
 
-func display_selection() {
-    // gui_get fonctionne maintenant grâce à la variable de contrôle
-    var check_state = gui_get("check_agree", "value") 
-    var radio_choice = gui_get("radio_low", "value") // Lit le choix sélectionné dans le groupe radio
-
-    var status = "Etat de la case à cocher: " + check_state
-    var choice = "Choix radio: " + radio_choice
+// Fonction appelée par le bouton pour le dialogue
+func save_file_logic() {
+    // 1. Demande de confirmation
+    var confirmed = gui_confirm("Confirmation", "Voulez-vous enregistrer le fichier ?")
     
-    gui_set("result_label", "text", status + " | " + choice)
-    print status
-    print choice
+    if (confirmed == 1) { // 1 = True
+        gui_alert("Dialogue", "Ouverture de la fenêtre d'enregistrement...")
+        
+        // 2. Ouvre le dialogue de sauvegarde
+        var path = gui_save_file("Enregistrer le document", ".txt")
+        
+        if (len(path) > 0) { // Si l'utilisateur n'a pas annulé
+            // 3. Simule l'écriture du fichier (utilisation de la commande existante)
+            write_file(path, "Contenu du fichier JSS.")
+            gui_alert("Succès", "Fichier enregistré : " + path)
+            gui_set("status_label", "text", "Fichier enregistré : " + path)
+        } else {
+            gui_alert("Annulation", "Enregistrement annulé.")
+        }
+    } else {
+        gui_set("status_label", "text", "Enregistrement ignoré.")
+    }
 }
 
-// 1. Checkbutton (Row 0)
-gui_new("check_label", "Label", {"text": "Options:"})
-gui_grid("check_label", 0, 0, {"sticky": "w", "pady": 5, "padx": 5})
 
-// Crée le Checkbutton. Il gère sa propre variable de contrôle interne.
-gui_new("check_agree", "Checkbutton", {"text": "J'accepte les conditions"})
-gui_grid("check_agree", 0, 1, {"sticky": "w", "pady": 5, "padx": 5})
+// --- 1. Création des Frames (Conteneurs) ---
 
-// 2. Radiobuttons (Row 1)
-gui_new("radio_group_label", "Label", {"text": "Choisir le niveau:"})
-gui_grid("radio_group_label", 1, 0, {"sticky": "w", "pady": 5, "padx": 5})
+// Frame principal (parent: racine)
+gui_new("main_frame", "Frame", {})
+gui_grid("main_frame", 0, 0, {"sticky": "nsew"}) // Un seul Frame principal, prend toute la place
 
-// CLÉ : Tous les Radiobuttons du groupe DOIVENT partager le même ID JSS (ici "radio_group")
-// Cette ID est utilisée par notre Handler pour stocker la variable de contrôle partagée (tk.StringVar)
+// Frame pour le côté gauche (parent: main_frame)
+gui_new("left_panel", "Frame", {"relief": "sunken", "borderwidth": 2}, "main_frame")
+gui_grid("left_panel", 0, 0, {"sticky": "ns"})
 
-// 1. Radiobuttons (Row 1)
-// On utilise "LEVEL" comme clé de groupe partagée
-gui_new("radio_label", "Label", {"text": "Choisir le niveau:"})
-gui_grid("radio_label", 1, 0, {"sticky": "w", "pady": 5, "padx": 5})
+// Frame pour le côté droit (parent: main_frame)
+gui_new("right_panel", "Frame", {"padx": 10, "pady": 10}, "main_frame")
+gui_grid("right_panel", 0, 1, {"sticky": "nsew"})
 
-// Option 1 : Crée la variable de groupe "LEVEL"
-gui_new("radio_low", "Radiobutton", {"text": "Bas", "value": "LOW", "group_id": "LEVEL"}) 
-gui_grid("radio_low", 1, 1, {"sticky": "w", "padx": 5})
 
-// Option 2 : Utilise la variable "LEVEL" existante
-gui_new("radio_medium", "Radiobutton", {"text": "Moyen", "value": "MEDIUM", "group_id": "LEVEL"})
-gui_grid("radio_medium", 1, 2, {"sticky": "w", "padx": 5})
+// --- 2. Widgets dans les Frames ---
 
-// Option 3 : Utilise la variable "LEVEL" existante
-gui_new("radio_high", "Radiobutton", {"text": "Élevé", "value": "HIGH", "group_id": "LEVEL"})
-gui_grid("radio_high", 2, 1, {"sticky": "w", "padx": 5})
+// Widget dans le panneau gauche
+gui_new("left_label", "Label", {"text": "Panneau de Gauche"}, "left_panel")
+gui_grid("left_label", 0, 0, {})
 
-// 3. Bouton de soumission (Row 3)
-gui_new("submit_button", "Button", {"text": "Afficher les résultats"})
-gui_grid("submit_button", 3, 0, {"columnspan": 3, "pady": 10})
+// Widget dans le panneau droit (Bouton d'action)
+gui_new("action_button", "Button", {"text": "Démarrer Dialogue"}, "right_panel")
+gui_grid("action_button", 0, 0, {})
 
-// 4. Label de résultats (Row 4)
-gui_new("result_label", "Label", {"text": "Prêt à tester les sélections."})
-gui_grid("result_label", 4, 0, {"columnspan": 3})
+// Label de statut
+gui_new("status_label", "Label", {"text": "Prêt."}, "right_panel")
+gui_grid("status_label", 1, 0, {"pady": 10})
 
-// 5. Binding
-gui_on("submit_button", "<Button-1>", "display_selection")
 
-// 6. Affichage
+// --- 3. Binding et Lancement ---
+gui_on("action_button", "<Button-1>", "save_file_logic")
+
 gui_show(null)

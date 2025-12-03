@@ -2,6 +2,7 @@ import queue
 import threading
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import filedialog
 from typing import List, Any, Dict, Optional
 from jsonscript.exceptions import ReturnValue
 from jsonscript.handlers.base import BaseHandler, EvaluatorFunc
@@ -47,7 +48,11 @@ class GUIHandler(BaseHandler):
             "gui_size",
             "gui_get",
             "gui_grid",
-            "gui_place"
+            "gui_place",
+            "gui_alert",
+            "gui_confirm",
+            "gui_open_file",
+            "gui_save_file"
         }
     
     def handle(self, command: str, args: List[Any], env: Any, evaluator: EvaluatorFunc) -> Any:
@@ -70,7 +75,16 @@ class GUIHandler(BaseHandler):
             widget_id = arg_str(0)
             widget_type = arg_str(1).lower()
             properties = arg(2)
-            root = self._get_root()
+
+            # 1. DÉTERMINER LE PARENT (NOUVEAU)
+            parent_id = None
+            if len(args) > 3:
+                parent_id = arg_str(3) # L'ID du widget parent
+                
+            if parent_id and parent_id in self._widgets_registry:
+                parent = self._widgets_registry[parent_id] # Utilise le Frame/Widget spécifié
+            else:
+                parent = self._get_root() # Default à la fenêtre racine
 
             if widget_id in self._widgets_registry:
                 raise ValueError(f"Widget ID '{widget_id}' already exists.")
@@ -97,15 +111,17 @@ class GUIHandler(BaseHandler):
             
             # Mappage du type de widget
             if widget_type == "button":
-                widget = tk.Button(root, **properties)
+                widget = tk.Button(parent, **properties)
             elif widget_type == "label":
-                widget = tk.Label(root, **properties)
+                widget = tk.Label(parent, **properties)
             elif widget_type == "entry":
-                widget = tk.Entry(root, **properties)
+                widget = tk.Entry(parent, **properties)
             elif widget_type == "checkbutton": 
-                widget = tk.Checkbutton(root, **properties)
+                widget = tk.Checkbutton(parent, **properties)
             elif widget_type == "radiobutton": 
-                widget = tk.Radiobutton(root, **properties)
+                widget = tk.Radiobutton(parent, **properties)
+            elif widget_type == "frame":
+                widget = tk.Frame(parent, **properties)
             else:
                 raise ValueError(f"Unknown widget type: {widget_type}")
 
@@ -221,7 +237,45 @@ class GUIHandler(BaseHandler):
 
             widget.grid(row=row, column=col, **options)
             return True
-
+        
+        if command == "gui_alert":
+            # Syntax: gui_alert(title, message)
+            title = arg_str(0)
+            message = arg_str(1)
+            messagebox.showinfo(title, message)
+            return True
+        
+        if command == "gui_confirm":
+            # Syntax: gui_confirm(title, message)
+            title = arg_str(0)
+            message = arg_str(1)
+            # Retourne un Booléen Python (True/False)
+            return messagebox.askyesno(title, message)
+        
+        if command == "gui_open_file":
+            # Syntax: gui_open_file(title, filetypes_list)
+            title = arg_str(0)
+            filetypes_list = arg(1) # [["Text files", "*.txt"], ["All files", "*.*"]]
+            
+            # Conversion du format JSS en format Tkinter (liste de tuples)
+            tk_filetypes = [(ft[0], ft[1]) for ft in filetypes_list]
+            
+            # Retourne le chemin du fichier sélectionné (chaîne vide si annulé)
+            path = filedialog.askopenfilename(title=title, filetypes=tk_filetypes)
+            return path
+        
+        if command == "gui_save_file":
+            # Syntax: gui_save_file(title, default_ext)
+            title = arg_str(0)
+            default_ext = arg_str(1)
+            
+            # Retourne le chemin où l'utilisateur souhaite enregistrer
+            path = filedialog.asksaveasfilename(
+                title=title, 
+                defaultextension=default_ext
+            )
+            return path
+        
 
 def create_js_callback(js_func_name: str, instance_name: str = None, event_type: str = None) -> callable:
     """Crée la fonction Python qui sera appelée par Tkinter lors d'un événement."""
