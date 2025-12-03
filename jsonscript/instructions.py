@@ -360,3 +360,39 @@ class AssertInstruction(Instruction):
         if not ExpressionEvaluator.evaluate(self.condition, environment):
             msg = str(ExpressionEvaluator.evaluate(self.error_message, environment))
             raise AssertionError(f"Assertion Failed: {msg}")
+
+
+class SwitchInstruction(Instruction):
+    def __init__(self, test_expr: Any, cases: List[List[Any]], default_block: List[Any] = None):
+        self.test_expr = test_expr
+        self.cases = cases # Liste de paires [ [valeur_declencheur, [instructions]], ... ]
+        self.default_block = default_block if default_block is not None else []
+
+    def execute(self, environment: Environment):
+        # Local import
+        from .factory import InstructionFactory
+
+        # 1. On évalue la valeur qu'on teste (ex: "admin")
+        test_val = ExpressionEvaluator.evaluate(self.test_expr, environment)
+        
+        match_found = False
+
+        # 2. On parcourt les cas
+        for case_entry in self.cases:
+            case_val_expr = case_entry[0]
+            case_body = case_entry[1]
+            
+            # On évalue la valeur du case (permet de faire case 1+1:)
+            case_val = ExpressionEvaluator.evaluate(case_val_expr, environment)
+            
+            if test_val == case_val:
+                match_found = True
+                # Exécution du bloc correspondant
+                for raw_inst in case_body:
+                    InstructionFactory.build(raw_inst).execute(environment)
+                return # On sort du switch (comportement moderne)
+
+        # 3. Si aucun cas ne correspond, on lance le default
+        if not match_found and self.default_block:
+            for raw_inst in self.default_block:
+                InstructionFactory.build(raw_inst).execute(environment)

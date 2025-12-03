@@ -7,19 +7,22 @@ TOKEN_SPEC = [
     ('STRING',  r'"[^"]*"'),
     ('NUMBER',  r'\d+'),
     # AJOUT DE 'import' DANS LES MOTS-CLÉS
-    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input)\b'),
+    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default)\b'),
     ('ID',      r'[a-zA-Z_]\w*'),
     ('OP_CMP',  r'(==|!=|<=|>=|<|>)'),
     ('OP_MATH', r'[+\-*/%]'),
     ('ASSIGN',  r'='),
     ('LBRACE',  r'\{'),
     ('RBRACE',  r'\}'),
+    ('LBRACKET',r'\['),
+    ('RBRACKET',r'\]'),
     ('LPAREN',  r'\('),
     ('RPAREN',  r'\)'),
     ('COMMA',   r','),
     ('DOT',     r'\.'),
+    ('COLON',   r':'),
     ('SKIP',    r'[ \t\n]+'),
-    ('MISMATCH',r'.'),
+    ('MISMATCH',r'.')
 ]
 
 class Token:
@@ -117,8 +120,8 @@ class Parser:
             if token.value == 'break':  return self.parse_break()
             if token.value == 'class':  return self.parse_class()
             if token.value == 'input':  return self.parse_input()
-            # AJOUT: Gestion de l'import
             if token.value == 'import': return self.parse_import()
+            if token.value == 'switch': return self.parse_switch()
         
         if token.type == 'ID':
             next_tok = self.peek(1)
@@ -220,6 +223,52 @@ class Parser:
         var_name = self.consume('ID').value # nom de la variable
         prompt = self.consume('STRING').value # texte affiché
         return ["input", var_name, prompt]
+    
+    def parse_switch(self):
+        self.consume() # switch
+        self.consume('LPAREN')
+        test_expr = self.parse_expression()
+        self.consume('RPAREN')
+        self.consume('LBRACE')
+        
+        cases = []
+        default_body = []
+        
+        while not self.is_at_end() and self.peek().type != 'RBRACE':
+            if self.match('KEYWORD'):
+                kw = self.tokens[self.pos-1].value # On vient de consommer case ou default
+                
+                if kw == 'case':
+                    val_expr = self.parse_expression()
+                    self.consume('COLON')
+                    body = self.parse_case_body()
+                    cases.append([val_expr, body])
+                    
+                elif kw == 'default':
+                    self.consume('COLON')
+                    default_body = self.parse_case_body()
+                
+                else:
+                    raise SyntaxError(f"Attendu 'case' ou 'default' dans un switch, reçu '{kw}'")
+            else:
+                 raise SyntaxError("Attendu 'case' ou 'default' dans un switch.")
+                 
+        self.consume('RBRACE')
+        return ["switch", test_expr, cases, default_body]
+
+    def parse_case_body(self):
+        """Lit les instructions jusqu'au prochain case/default/}" """
+        block = []
+        # Tant qu'on ne tombe pas sur un 'case', 'default' ou la fin du switch '}'
+        while not self.is_at_end():
+            token = self.peek()
+            if token.type == 'RBRACE':
+                break
+            if token.type == 'KEYWORD' and token.value in ('case', 'default'):
+                break
+            
+            block.append(self.parse_statement())
+        return block
 
     # --- Expressions ---
     def parse_expression(self):
@@ -260,6 +309,31 @@ class Parser:
             return int(self.consume().value)
         if token.type == 'STRING':
             return self.consume().value
+        
+        if token.type == 'LBRACKET':
+            self.consume() # [
+            elements = []
+            if not self.match('RBRACKET'):
+                elements.append(self.parse_expression())
+                while self.match('COMMA'):
+                    elements.append(self.parse_expression())
+                self.consume('RBRACKET')
+            return elements
+        
+        if token.type == 'LBRACE':
+            self.consume() # {
+            obj = {}
+            if not self.match('RBRACE'):
+                while True:
+                    key_token = self.consume('STRING') # JSON requires string keys
+                    self.consume('COLON')
+                    value = self.parse_expression()
+                    obj[key_token.value] = value
+                    
+                    if not self.match('COMMA'):
+                        break
+                self.consume('RBRACE')
+            return obj
         
         if token.type == 'ID':
             name = self.consume().value

@@ -141,6 +141,14 @@ class InstructionFactory:
             if len(raw_instruction) < 3: 
                 raise ValueError("Invalid assert.")
             return AssertInstruction(condition=raw_instruction[1], error_message=raw_instruction[2])
+        
+        elif command_type == "switch":
+            # ["switch", val, cases_list, default_list]
+            if len(raw_instruction) < 3: 
+                raise ValueError("Invalid switch.")
+            
+            default_block = raw_instruction[3] if len(raw_instruction) > 3 else None
+            return SwitchInstruction(raw_instruction[1], raw_instruction[2], default_block)
 
         else:
             raise ValueError(f"Unknown command: {command_type}")
