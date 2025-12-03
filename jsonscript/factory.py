@@ -116,7 +116,10 @@ class InstructionFactory:
             # Syntax: ["class", "Name", ["attribute_1", "attribute_2"], { "method_1": [["params"], [body]] }]
             if len(raw_instruction) < 4:
                 raise ValueError("Invalid class instruction")
-            return ClassDefInstruction(name=raw_instruction[1], init_params=raw_instruction[2], methods=raw_instruction[3])
+            
+            parent = raw_instruction[4] if len(raw_instruction) > 4 else None
+
+            return ClassDefInstruction(name=raw_instruction[1], init_params=raw_instruction[2], methods=raw_instruction[3], parent_name=parent)
         
         elif command_type == "call_method":
             # ["call_method", obj, method, args...]

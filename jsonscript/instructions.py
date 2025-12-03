@@ -277,10 +277,11 @@ class SleepInstruction(Instruction):
 
 
 class ClassDefInstruction(Instruction):
-    def __init__(self, name: str, init_params: List[str], methods: Dict[str, Any]):
+    def __init__(self, name: str, init_params: List[str], methods: Dict[str, Any], parent_name: str = None):
         self.name = name
         self.init_params = init_params
         self.methods = methods
+        self.parent_name = parent_name
 
     def execute(self, environment: Environment):
         # On nettoie un peu le format des méthodes pour qu'il soit uniforme
@@ -292,7 +293,7 @@ class ClassDefInstruction(Instruction):
                 "body": method_data[1]
             }
             
-        environment.define_class(self.name, self.init_params, clean_methods)
+        environment.define_class(self.name, self.init_params, clean_methods, self.parent_name)
 
 
 class CallMethodInstruction(Instruction):

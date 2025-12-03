@@ -73,8 +73,7 @@ class ObjectHandler(BaseHandler):
 
         # ["call_method", instance, "method_name", arg1...]
         if command == "call_method":
-            # Local import
-            from ..factory import InstructionFactory
+            from jsonscript.factory import InstructionFactory
 
             instance = evaluator(args[0], env)
             method_name = args[1]
@@ -83,30 +82,38 @@ class ObjectHandler(BaseHandler):
             if not isinstance(instance, dict) or "__class__" not in instance:
                 raise ValueError("Target is not a valid object instance.")
             
-            # 1. Trouver la définition de la méthode dans la classe
             class_name = instance["__class__"]
-            cls_def = env.get_class(class_name)
-            method_def = cls_def["methods"].get(method_name)
+            
+            # --- LOGIQUE DE RECHERCHE D'HÉRITAGE ---
+            method_def = None
+            current_class_name = class_name
+            
+            # On boucle tant qu'on n'a pas trouvé la méthode ou qu'il n'y a plus de parent
+            while current_class_name:
+                cls_def = env.get_class(current_class_name)
+                
+                if method_name in cls_def["methods"]:
+                    method_def = cls_def["methods"][method_name]
+                    break # Trouvé !
+                
+                # Pas trouvé, on remonte au parent
+                current_class_name = cls_def["parent"] # Sera None si pas de parent
             
             if not method_def:
-                raise ValueError(f"Method '{method_name}' not found in class '{class_name}'.")
+                raise ValueError(f"Method '{method_name}' not found in class '{class_name}' or its parents.")
+            # ---------------------------------------
 
-            # 2. Préparer scope et arguments
+            # ... (Le reste : scope, params, execute est IDENTIQUE à avant) ...
             param_names = method_def["params"]
             if len(method_args) != len(param_names):
                 raise ValueError(f"Method '{method_name}' expects {len(param_names)} args.")
 
             resolved_args = [evaluator(arg, env) for arg in method_args]
-
             env.enter_scope()
-            
-            # --- LA CLÉ EST ICI : On injecte 'this' ---
             env.set_variable("this", instance)
-            
             for name, val in zip(param_names, resolved_args):
                 env.set_variable(name, val)
 
-            # 3. Exécution
             return_val = None
             try:
                 for raw_inst in method_def["body"]:

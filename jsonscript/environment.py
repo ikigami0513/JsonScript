@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 class Environment:
@@ -47,10 +47,14 @@ class Environment:
             raise ValueError(f"Function '{name}' is not defined.")
         return func
     
-    def define_class(self, name: str, init_params: List[str], methods: Dict[str, Any]):
+    def define_class(self, name: str, init_params: List[str], methods: Dict[str, Any], parent_name: Optional[str] = None):
+        if parent_name and parent_name not in self._classes:
+            raise ValueError(f"Parent class '{parent_name}' does not exist.")
+
         self._classes[name] = {
             "params": init_params, # Pour le constructeur
-            "methods": methods     # Dict de fonctions { "bark": {params, body} }
+            "methods": methods,    # Dict de fonctions { "bark": {params, body} }
+            "parent": parent_name
         }
 
     def get_class(self, name: str) -> Dict[str, Any]:

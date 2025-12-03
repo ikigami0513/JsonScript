@@ -1,0 +1,28 @@
+[
+    ["print", "--- TEST HÉRITAGE ---"],
+
+    ["comment", "1. Classe de base : Animal"],
+    ["class", "Animal", ["name"], {
+        "speak": [ [], [["print", "Generic animal noise..."]] ],
+        "sleep": [ [], [["print", ["get_attr", ["get", "this"], "name"], " is sleeping."]] ]
+    }],
+
+    ["comment", "2. Classe Enfant : Dog (Hérite de Animal)"],
+    ["class", "Dog", ["name"], {
+        "speak": [ [], [["print", "Woof! Woof!"]] ] 
+    }, "Animal"],
+
+    ["comment", "Note: Dog redéfinit 'speak' mais hérite de 'sleep'"],
+
+    ["set", "rex", ["new", "Dog", "Rex"]],
+    ["set", "bird", ["new", "Animal", "Tweety"]],
+
+    ["print", "\n--- Polymorphisme (Speak) ---"],
+    ["call_method", ["get", "bird"], "speak"],
+    ["call_method", ["get", "rex"], "speak"],
+
+    ["print", "\n--- Héritage (Sleep) ---"],
+    ["call_method", ["get", "bird"], "sleep"],
+    ["comment", "Rex utilise la méthode sleep de Animal !"],
+    ["call_method", ["get", "rex"], "sleep"]
+]
