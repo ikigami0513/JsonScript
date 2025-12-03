@@ -1,0 +1,41 @@
+[
+    ["print", "--- TEST HTTP REQUESTS ---"],
+
+    ["comment", "1. GET Request"],
+    ["print", "Fetching Todo #1 from JSONPlaceholder..."],
+    
+    ["try",
+        [
+            ["set", "response_str", ["http_get", "https://jsonplaceholder.typicode.com/todos/1"]],
+            ["print", "Raw Response: ", ["get", "response_str"]]
+        ],
+        "err",
+        [
+            ["print", "GET Error: ", ["get", "err"]]
+        ]
+    ],
+
+    ["comment", "2. Parsing JSON"],
+    ["print", "\nParsing response..."],
+    ["set", "todo_obj", ["parse_json", ["get", "response_str"]]],
+    
+    ["print", "Todo ID: ", ["at", ["get", "todo_obj"], "id"]],
+    ["print", "Title: ", ["at", ["get", "todo_obj"], "title"]],
+    ["print", "Completed: ", ["at", ["get", "todo_obj"], "completed"]],
+
+    ["comment", "3. POST Request"],
+    ["print", "\nSending POST request..."],
+    
+    ["set", "new_post", {
+        "title": "My JsonScript Post",
+        "body": "This was sent from my custom interpreter!",
+        "userId": 42
+    }],
+
+    ["set", "post_response", ["http_post", "https://jsonplaceholder.typicode.com/posts", ["get", "new_post"]]],
+    ["print", "Server Response: ", ["get", "post_response"]],
+    
+    ["comment", "Vérifions que l'API nous a renvoyé l'ID créé (souvent 101 pour ce mock)"],
+    ["set", "created_obj", ["parse_json", ["get", "post_response"]]],
+    ["print", "New Post ID: ", ["at", ["get", "created_obj"], "id"]]
+]
