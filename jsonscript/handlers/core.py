@@ -27,39 +27,53 @@ class CoreHandler(BaseHandler):
             return type(target).__name__
 
         if command == "call":
+            # Local import
             from jsonscript.factory import InstructionFactory
 
             func_name = args[0]
             call_args = args[1:]
-
+            
             # 1. Retrieve definition
             func_def = env.get_function(func_name)
-            param_names = func_def["params"]
-            body = func_def["body"]
-
-            # 2. Check arity
-            if len(call_args) != len(param_names):
-                raise ValueError(f"Function '{func_name}' expects {len(param_names)} args, got {len(call_args)}.")
-
-            # 3. Resolve arguments
+            
+            # 2. Resolve arguments (Evaluate them first)
             resolved_args = [evaluator(arg, env) for arg in call_args]
 
-            # 4. Scope management
-            env.enter_scope()
-            for name, val in zip(param_names, resolved_args):
-                env.set_variable(name, val)
+            # --- CAS 1 : FONCTION NATIVE PYTHON ---
+            if func_def.get("type") == "native":
+                python_func = func_def["ref"]
+                try:
+                    # On appelle directement la fonction Python avec les arguments résolus
+                    return python_func(*resolved_args)
+                except Exception as e:
+                    raise RuntimeError(f"Error calling native function '{func_name}': {e}")
 
-            # 5. Execution
-            return_val = None
-            try:
-                for raw_inst in body:
-                    InstructionFactory.build(raw_inst).execute(env)
-            except ReturnValue as ret:
-                return_val = ret.value
-            finally:
-                env.exit_scope()
+            # --- CAS 2 : FONCTION JSONSCRIPT (Legacy) ---
+            # (Note : On adapte l'ancien code pour gérer le dictionnaire structurel)
+            elif func_def.get("type") == "script" or "params" in func_def: 
+                # "params" in func_def c'est pour la rétrocompatibilité si tu as une vieille version de l'env
+                
+                param_names = func_def["params"]
+                body = func_def["body"]
+
+                if len(resolved_args) != len(param_names):
+                    raise ValueError(f"Function '{func_name}' expects {len(param_names)} args, got {len(resolved_args)}.")
+
+                env.enter_scope()
+                for name, val in zip(param_names, resolved_args):
+                    env.set_variable(name, val)
+
+                return_val = None
+                try:
+                    for raw_inst in body:
+                        InstructionFactory.build(raw_inst).execute(env)
+                except ReturnValue as ret:
+                    return_val = ret.value
+                finally:
+                    env.exit_scope()
+                
+                return return_val
             
-            return return_val
-
-        raise ValueError(f"CoreHandler cannot handle: {command}")
+            else:
+                raise ValueError(f"Unknown function type for '{func_name}'")
     

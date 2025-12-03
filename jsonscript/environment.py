@@ -25,7 +25,20 @@ class Environment:
         raise ValueError(f"Variable '{name}' is not defined.")
 
     def define_function(self, name: str, params: List[str], body: List[Any]) -> None:
-        self._functions[name] = {"params": params, "body": body}
+        self._functions[name] = {
+            "type": "script", 
+            "params": params, 
+            "body": body
+        }
+
+    def register_native_function(self, name: str, func_callable: Any) -> None:
+        """
+        Registers a pure Python function to be callable from JsonScript.
+        """
+        self._functions[name] = {
+            "type": "native",
+            "ref": func_callable
+        }
 
     def get_function(self, name: str) -> Dict[str, Any]:
         func = self._functions.get(name)
