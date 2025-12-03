@@ -3,7 +3,7 @@ import time
 from abc import ABC, abstractmethod
 from jsonscript.environment import Environment
 from jsonscript.evaluator import ExpressionEvaluator
-from jsonscript.exceptions import BreakLoop, ReturnValue
+from jsonscript.exceptions import BreakLoop, ContinueLoop, ReturnValue
 from typing import Any, List, Dict
 
 
@@ -88,6 +88,13 @@ class BreakInstruction(Instruction):
     def execute(self, environment: Environment):
         # On lève l'exception pour signaler l'arrêt immédiat
         raise BreakLoop()
+    
+
+class ContinueInstruction(Instruction):
+    def __init__(self):
+        pass
+    def execute(self, environment: Environment):
+        raise ContinueLoop()
 
 
 class WhileInstruction(Instruction):
@@ -96,17 +103,16 @@ class WhileInstruction(Instruction):
         self.body = body
 
     def execute(self, environment: Environment):
-        from .factory import InstructionFactory # Local import
-        
-        # On enveloppe toute la boucle dans un try/except
-        try:
+        from jsonscript.factory import InstructionFactory 
+        try: # Try/Except extérieur pour le BREAK
             while ExpressionEvaluator.evaluate(self.condition, environment):
-                for raw_instruction in self.body:
-                    InstructionFactory.build(raw_instruction).execute(environment)
+                try: # Try/Except intérieur pour le CONTINUE
+                    for raw_instruction in self.body:
+                        InstructionFactory.build(raw_instruction).execute(environment)
+                except ContinueLoop:
+                    continue # Saute à la prochaine vérification 'while'
         except BreakLoop:
-            # Si un 'break' est levé, on atterrit ici.
-            # On ne fait rien (pass), ce qui permet de continuer le script APRES la boucle.
-            pass
+            pass # Sort de la boucle
 
 
 class ForRangeInstruction(Instruction):
@@ -118,19 +124,22 @@ class ForRangeInstruction(Instruction):
         self.body = body
 
     def execute(self, environment: Environment):
-        from .factory import InstructionFactory # Local import
+        from jsonscript.factory import InstructionFactory 
         
         start_val = int(ExpressionEvaluator.evaluate(self.start_expr, environment))
         end_val = int(ExpressionEvaluator.evaluate(self.end_expr, environment))
         step_val = int(ExpressionEvaluator.evaluate(self.step_expr, environment))
 
-        try:
+        try: # Try/Except extérieur pour le BREAK
             for i in range(start_val, end_val, step_val):
                 environment.set_variable(self.var_name, i)
-                for raw_instruction in self.body:
-                    InstructionFactory.build(raw_instruction).execute(environment)
+                try: # Try/Except intérieur pour le CONTINUE
+                    for raw_instruction in self.body:
+                        InstructionFactory.build(raw_instruction).execute(environment)
+                except ContinueLoop:
+                    continue # Saute à la prochaine itération 'for i'
         except BreakLoop:
-            pass # On sort proprement de la boucle for
+            pass # Sort de la boucle
 
 
 class IfInstruction(Instruction):

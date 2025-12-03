@@ -6,7 +6,7 @@ TOKEN_SPEC = [
     ('COMMENT', r'//.*'),
     ('STRING',  r'"[^"]*"'),
     ('NUMBER',  r'\d+'),
-    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default|throw|assert)\b'),
+    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default|throw|assert|continue|for)\b'),
     ('ID',      r'[a-zA-Z_]\w*'),
     ('OP_CMP',  r'(==|!=|<=|>=|<|>)'),
     ('OP_MATH', r'[+\-*/%]'),
@@ -123,6 +123,8 @@ class Parser:
             if token.value == 'switch': return self.parse_switch()
             if token.value == 'throw':  return self.parse_throw()
             if token.value == 'assert': return self.parse_assert()
+            if token.value == "continue": return self.parse_continue()
+            if token.value == "for": return self.parse_for_range()
         
         if token.type == 'ID':
             next_tok = self.peek(1)
@@ -289,6 +291,28 @@ class Parser:
         
         # Retourne l'instruction JSON attendue par la Factory
         return ["assert", condition, message]
+    
+    def parse_continue(self):
+        self.consume("KEYWORD")
+        return ["continue"]
+    
+    def parse_for_range(self):
+        # Syntaxe JSS: for (var, start, end, step) { body }
+        self.consume('KEYWORD') # for
+        self.consume('LPAREN')
+        
+        var_name = self.consume('ID').value
+        self.consume('COMMA')
+        start = self.parse_expression()
+        self.consume('COMMA')
+        end = self.parse_expression()
+        self.consume('COMMA')
+        step = self.parse_expression()
+        
+        self.consume('RPAREN')
+        body = self.parse_block()
+        
+        return ["for_range", var_name, start, end, step, body]
 
     # --- Expressions ---
     def parse_expression(self):

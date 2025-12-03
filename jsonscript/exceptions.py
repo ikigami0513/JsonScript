@@ -10,3 +10,8 @@ class ReturnValue(Exception):
 class BreakLoop(Exception):
     """Special exception to break out of a loop."""
     pass
+
+
+class ContinueLoop(Exception):
+    """Special exception to skip to the next loop iteration."""
+    pass
