@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 import subprocess
 from typing import List, Any
@@ -15,7 +16,8 @@ class SysHandler(BaseHandler):
             "exec", 
             "os_name", 
             "cwd", 
-            "env"
+            "env",
+            "args"
         }
 
     def handle(self, command: str, args: List[Any], env: Any, evaluator: EvaluatorFunc) -> Any:
@@ -51,6 +53,9 @@ class SysHandler(BaseHandler):
         if command == "env":
             var_name = str(evaluator(args[0], env))
             return os.environ.get(var_name, "")
+        
+        if command == "args":
+            return sys.argv[1:]
 
         raise ValueError(f"SysHandler cannot handle: {command}")
     

@@ -7,7 +7,7 @@ TOKEN_SPEC = [
     ('STRING',  r'"[^"]*"'),
     ('NUMBER',  r'\d+'),
     # AJOUT DE 'import' DANS LES MOTS-CLÉS
-    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default)\b'),
+    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input|switch|case|default|throw|assert)\b'),
     ('ID',      r'[a-zA-Z_]\w*'),
     ('OP_CMP',  r'(==|!=|<=|>=|<|>)'),
     ('OP_MATH', r'[+\-*/%]'),
@@ -122,6 +122,8 @@ class Parser:
             if token.value == 'input':  return self.parse_input()
             if token.value == 'import': return self.parse_import()
             if token.value == 'switch': return self.parse_switch()
+            if token.value == 'throw':  return self.parse_throw()
+            if token.value == 'assert': return self.parse_assert()
         
         if token.type == 'ID':
             next_tok = self.peek(1)
@@ -269,6 +271,25 @@ class Parser:
             
             block.append(self.parse_statement())
         return block
+    
+    def parse_throw(self):
+        self.consume() # Mange le mot-clé 'throw'
+        expr = self.parse_expression() # Parse le message d'erreur
+        return ["throw", expr]
+    
+    def parse_assert(self):
+        self.consume() # Consomme le mot-clé 'assert'
+        
+        self.consume('LPAREN') # (
+        condition = self.parse_expression()
+        
+        self.consume('COMMA')  # ,
+        
+        message = self.parse_expression()
+        self.consume('RPAREN') # )
+        
+        # Retourne l'instruction JSON attendue par la Factory
+        return ["assert", condition, message]
 
     # --- Expressions ---
     def parse_expression(self):
@@ -351,17 +372,21 @@ class Parser:
                     # Advanced Strings
                     "trim", "substring", "contains", "index_of", "starts_with", "ends_with",
                     # Collection / Core
-                    "len", "at", "type",
+                    "len", "at", "type", "push", "put",
                     # Time
                     "now", "timestamp", "format_date",
                     # Sys / IO
-                    "os_name", "cwd", "env", "exec", "read_file", "write_file",
+                    "os_name", "cwd", "env", "exec", "args", "read_file", "write_file",
                     # Web
                     "http_get", "http_post",
                     # Filesystem
                     "fs_exists", "fs_list", "fs_remove", "fs_mkdir", "fs_copy",
                     # Crypto
                     "hash_md5", "hash_sha256", "base64_encode", "base64_decode",
+                    # Data
+                    "read_csv", "write_csv",
+                    # TUI
+                    "print_color", "clear_screen", "input_password"
                 ]
                 
                 if name in NATIVE_COMMANDS:
