@@ -25,7 +25,8 @@ class MathHandler(BaseHandler):
             "round", 
             "floor", 
             "ceil", 
-            "PI"
+            "PI",
+            "to_int"
         }
 
     def handle(self, command: str, args: List[Any], env: Environment, evaluator: EvaluatorFunc) -> Any:
@@ -89,6 +90,13 @@ class MathHandler(BaseHandler):
             val = eval_arg(0)
             digits = int(eval_arg(1)) if len(args) > 1 else 0
             return round(val, digits)
+        
+        if command == "to_int":
+            val = eval_arg(0)
+            try:
+                return int(val)
+            except ValueError:
+                return 0
 
         raise ValueError(f"MathHandler cannot handle: {command}")
     

@@ -6,3 +6,7 @@ class ReturnValue(Exception):
     def __init__(self, value: Any):
         self.value = value
         
+
+class BreakLoop(Exception):
+    """Special exception to break out of a loop."""
+    pass

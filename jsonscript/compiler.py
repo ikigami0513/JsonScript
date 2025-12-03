@@ -7,7 +7,7 @@ TOKEN_SPEC = [
     ('STRING',  r'"[^"]*"'),
     ('NUMBER',  r'\d+'),
     # AJOUT DE 'import' DANS LES MOTS-CLÉS
-    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import)\b'),
+    ('KEYWORD', r'\b(var|if|else|while|func|return|print|class|new|extends|import|break|input)\b'),
     ('ID',      r'[a-zA-Z_]\w*'),
     ('OP_CMP',  r'(==|!=|<=|>=|<|>)'),
     ('OP_MATH', r'[+\-*/%]'),
@@ -114,7 +114,9 @@ class Parser:
             if token.value == 'while':  return self.parse_while()
             if token.value == 'func':   return self.parse_func()
             if token.value == 'return': return self.parse_return()
+            if token.value == 'break':  return self.parse_break()
             if token.value == 'class':  return self.parse_class()
+            if token.value == 'input':  return self.parse_input()
             # AJOUT: Gestion de l'import
             if token.value == 'import': return self.parse_import()
         
@@ -208,6 +210,16 @@ class Parser:
         self.consume()
         expr = self.parse_expression()
         return ["return", expr]
+    
+    def parse_break(self):
+        self.consume() # break
+        return ["break"]
+    
+    def parse_input(self):
+        self.consume() # input
+        var_name = self.consume('ID').value # nom de la variable
+        prompt = self.consume('STRING').value # texte affiché
+        return ["input", var_name, prompt]
 
     # --- Expressions ---
     def parse_expression(self):

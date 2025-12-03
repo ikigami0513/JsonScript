@@ -3,7 +3,7 @@ import time
 from abc import ABC, abstractmethod
 from jsonscript.environment import Environment
 from jsonscript.evaluator import ExpressionEvaluator
-from jsonscript.exceptions import ReturnValue
+from jsonscript.exceptions import BreakLoop, ReturnValue
 from typing import Any, List, Dict
 
 
@@ -81,19 +81,32 @@ class CallInstruction(Instruction):
         ExpressionEvaluator.evaluate(self.raw_expression, environment)
 
 
+class BreakInstruction(Instruction):
+    def __init__(self):
+        pass
+
+    def execute(self, environment: Environment):
+        # On lève l'exception pour signaler l'arrêt immédiat
+        raise BreakLoop()
+
+
 class WhileInstruction(Instruction):
     def __init__(self, condition: Any, body: List[Any]):
         self.condition = condition
         self.body = body
 
     def execute(self, environment: Environment):
-        from jsonscript.factory import InstructionFactory
-
-        # Loop while the condition evaluates to True
-        while ExpressionEvaluator.evaluate(self.condition, environment):
-            # Parse and execute the body logic
-            for raw_instruction in self.body:
-                InstructionFactory.build(raw_instruction).execute(environment)
+        from .factory import InstructionFactory # Local import
+        
+        # On enveloppe toute la boucle dans un try/except
+        try:
+            while ExpressionEvaluator.evaluate(self.condition, environment):
+                for raw_instruction in self.body:
+                    InstructionFactory.build(raw_instruction).execute(environment)
+        except BreakLoop:
+            # Si un 'break' est levé, on atterrit ici.
+            # On ne fait rien (pass), ce qui permet de continuer le script APRES la boucle.
+            pass
 
 
 class ForRangeInstruction(Instruction):
@@ -105,21 +118,19 @@ class ForRangeInstruction(Instruction):
         self.body = body
 
     def execute(self, environment: Environment):
-        from jsonscript.factory import InstructionFactory
-
-        # 1. Evaluate range parameters once at the beginning
+        from .factory import InstructionFactory # Local import
+        
         start_val = int(ExpressionEvaluator.evaluate(self.start_expr, environment))
         end_val = int(ExpressionEvaluator.evaluate(self.end_expr, environment))
         step_val = int(ExpressionEvaluator.evaluate(self.step_expr, environment))
 
-        # 2. Iterate using Python's native range
-        for i in range(start_val, end_val, step_val):
-            # Update the loop variable in the environment
-            environment.set_variable(self.var_name, i)
-            
-            # Execute body
-            for raw_instruction in self.body:
-                InstructionFactory.build(raw_instruction).execute(environment)
+        try:
+            for i in range(start_val, end_val, step_val):
+                environment.set_variable(self.var_name, i)
+                for raw_instruction in self.body:
+                    InstructionFactory.build(raw_instruction).execute(environment)
+        except BreakLoop:
+            pass # On sort proprement de la boucle for
 
 
 class IfInstruction(Instruction):

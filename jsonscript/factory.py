@@ -41,6 +41,9 @@ class InstructionFactory:
                 raise ValueError("Invalid function call.")
             return CallInstruction(raw_instruction)
         
+        elif command_type == "break":
+            return BreakInstruction()
+        
         elif command_type == "while":
             # Syntax: ["while", [condition expression], [ [inst1], [inst2] ]]
             if len(raw_instruction) < 3: raise ValueError("Invalid while loop.")
