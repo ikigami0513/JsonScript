@@ -112,6 +112,20 @@ class InstructionFactory:
                 raise ValueError("Invalid sleep instruction.")
             return SleepInstruction(raw_instruction[1])
         
+        elif command_type == "class":
+            # Syntax: ["class", "Name", ["attribute_1", "attribute_2"], { "method_1": [["params"], [body]] }]
+            if len(raw_instruction) < 4:
+                raise ValueError("Invalid class instruction")
+            return ClassDefInstruction(name=raw_instruction[1], init_params=raw_instruction[2], methods=raw_instruction[3])
+        
+        elif command_type == "call_method":
+            # ["call_method", obj, method, args...]
+            return CallMethodInstruction(raw_expression=raw_instruction)
+        
+        elif command_type == "set_attr":
+            # ["set_attr", obj, attr, val]
+            return SetAttrInstruction(raw_expression=raw_instruction)
+
         else:
             raise ValueError(f"Unknown command: {command_type}")
         

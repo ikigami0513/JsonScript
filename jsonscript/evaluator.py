@@ -12,6 +12,7 @@ from jsonscript.handlers.io import IOHandler
 from jsonscript.handlers.sys import SysHandler
 from jsonscript.handlers.time import TimeHandler
 from jsonscript.handlers.http import HttpHandler
+from jsonscript.handlers.object import ObjectHandler
 
 class ExpressionEvaluator:
     # Enregistrement des Handlers
@@ -24,7 +25,8 @@ class ExpressionEvaluator:
         IOHandler(),
         SysHandler(),
         TimeHandler(),
-        HttpHandler()
+        HttpHandler(),
+        ObjectHandler()
     ]
 
     @staticmethod

@@ -4,7 +4,8 @@ from typing import Dict, Any, List
 class Environment:
     def __init__(self):
         self._scopes: List[Dict[str, Any]] = [{}] 
-        self._functions: Dict[str, Any] = {} 
+        self._functions: Dict[str, Any] = {}
+        self._classes: Dict[str, Any] = {}
 
     def enter_scope(self):
         self._scopes.append({})
@@ -46,3 +47,14 @@ class Environment:
             raise ValueError(f"Function '{name}' is not defined.")
         return func
     
+    def define_class(self, name: str, init_params: List[str], methods: Dict[str, Any]):
+        self._classes[name] = {
+            "params": init_params, # Pour le constructeur
+            "methods": methods     # Dict de fonctions { "bark": {params, body} }
+        }
+
+    def get_class(self, name: str) -> Dict[str, Any]:
+        cls = self._classes.get(name)
+        if cls is None:
+            raise ValueError(f"Class '{name}' is not defined.")
+        return cls

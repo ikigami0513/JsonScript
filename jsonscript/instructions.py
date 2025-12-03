@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from jsonscript.environment import Environment
 from jsonscript.evaluator import ExpressionEvaluator
 from jsonscript.exceptions import ReturnValue
-from typing import Any, List
+from typing import Any, List, Dict
 
 
 # Abstract Base Class for all instructions
@@ -274,3 +274,40 @@ class SleepInstruction(Instruction):
         # On évalue l'expression (ça permet de faire sleep(variable))
         seconds = float(ExpressionEvaluator.evaluate(self.duration_expression, environment))
         time.sleep(seconds)
+
+
+class ClassDefInstruction(Instruction):
+    def __init__(self, name: str, init_params: List[str], methods: Dict[str, Any]):
+        self.name = name
+        self.init_params = init_params
+        self.methods = methods
+
+    def execute(self, environment: Environment):
+        # On nettoie un peu le format des méthodes pour qu'il soit uniforme
+        clean_methods = {}
+        for method_name, method_data in self.methods.items():
+            # method_data est une liste [ [params], [body] ]
+            clean_methods[method_name] = {
+                "params": method_data[0],
+                "body": method_data[1]
+            }
+            
+        environment.define_class(self.name, self.init_params, clean_methods)
+
+
+class CallMethodInstruction(Instruction):
+    def __init__(self, raw_expression: List[Any]):
+        self.raw_expression = raw_expression
+
+    def execute(self, environment: Environment):
+        # On exécute l'expression pour déclencher la logique (et les side-effects)
+        # On ignore la valeur de retour
+        ExpressionEvaluator.evaluate(self.raw_expression, environment)
+
+class SetAttrInstruction(Instruction):
+    def __init__(self, raw_expression: List[Any]):
+        self.raw_expression = raw_expression
+
+    def execute(self, environment: Environment):
+        # Idem, permet de faire ["set_attr", obj, "val", 10] sans le mettre dans un "set"
+        ExpressionEvaluator.evaluate(self.raw_expression, environment)
