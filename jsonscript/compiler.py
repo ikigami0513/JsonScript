@@ -386,7 +386,9 @@ class Parser:
                     # Data
                     "read_csv", "write_csv",
                     # TUI
-                    "print_color", "clear_screen", "input_password"
+                    "print_color", "clear_screen", "input_password",
+                    # GUI
+                    "gui_new", "gui_set", "gui_show", "gui_on", "gui_quit", "gui_title", "gui_size", "gui_get", "gui_grid", "gui_place"
                 ]
                 
                 if name in NATIVE_COMMANDS:

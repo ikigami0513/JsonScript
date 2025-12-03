@@ -17,6 +17,7 @@ from jsonscript.handlers.fs import FileSystemHandler
 from jsonscript.handlers.crypto import CryptoEncodingHandler
 from jsonscript.handlers.data import DataHandler
 from jsonscript.handlers.tui import TUIHandler
+from jsonscript.handlers.gui import GUIHandler
 
 class ExpressionEvaluator:
     # Enregistrement des Handlers
@@ -34,7 +35,8 @@ class ExpressionEvaluator:
         FileSystemHandler(),
         CryptoEncodingHandler(),
         DataHandler(),
-        TUIHandler()
+        TUIHandler(),
+        GUIHandler()
     ]
 
     @staticmethod
