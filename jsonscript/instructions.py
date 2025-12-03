@@ -213,26 +213,40 @@ class ImportInstruction(Instruction):
         self.path_expression = path_expression
 
     def execute(self, env):
-        # 1. On évalue le chemin du fichier (permet de faire des imports dynamiques)
+        # 1. On résout le chemin du fichier
         filename = str(ExpressionEvaluator.evaluate(self.path_expression, env))
         
-        # 2. Import local de la Factory pour éviter la boucle d'import
+        # Imports locaux pour éviter les cycles
         from jsonscript.factory import InstructionFactory
-
+        
         try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            raw_instructions = []
+
+            # --- CAS 1 : Fichier JSS  ---
+            if filename.endswith(".jss"):
+                from jsonscript.compiler import JSSCompiler # Import local du compilateur
+                with open(filename, "r", encoding="utf-8") as f:
+                    source_code = f.read()
+                
+                # On compile à la volée
+                compiler = JSSCompiler()
+                raw_instructions = compiler.compile(source_code)
+
+            # --- CAS 2 : Fichier JSON (Legacy) ---
+            else:
+                import json
+                with open(filename, "r", encoding="utf-8") as f:
+                    raw_instructions = json.load(f)
+                print(f"DEBUG: Importing JSON module '{filename}'...")
             
-            # 3. On exécute chaque instruction du fichier importé
-            # dans l'environnement *actuel* (env)
-            for raw_item in data:
+            # 3. Exécution des instructions importées dans l'environnement actuel
+            for raw_item in raw_instructions:
                 InstructionFactory.build(raw_item).execute(env)
 
         except FileNotFoundError:
             print(f"Import Error: File '{filename}' not found.")
-        except json.JSONDecodeError:
-            print(f"Import Error: File '{filename}' is not valid JSON.")
         except Exception as e:
+            # Affiche l'erreur complète pour le debug
             print(f"Import Error in '{filename}': {e}")
 
 

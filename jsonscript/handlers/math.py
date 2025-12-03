@@ -35,7 +35,15 @@ class MathHandler(BaseHandler):
 
         # --- Basic Arithmetic ---
         if command == "+": 
-            return eval_arg(0) + eval_arg(1)
+            val1 = eval_arg(0)
+            val2 = eval_arg(1)
+            
+            # Si l'un des deux est une chaîne, on concatène (Style JavaScript)
+            if isinstance(val1, str) or isinstance(val2, str):
+                return str(val1) + str(val2)
+            
+            # Sinon, c'est une addition mathématique classique
+            return val1 + val2
         
         if command == "-": 
             return eval_arg(0) - eval_arg(1)

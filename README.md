@@ -10,21 +10,21 @@ JsonScript is an interpreted programming language, written in Python 3, that use
 
 - 100% JSON Syntax: Easy to parse, generate, and transmit programmatically.
 
-- Turing-Complete: Supports Variables, Loops (while, for), Conditions (if/else), Functions (args, return).
+- Turing-Complete: Supports Variables, Loops (`while`, `for`), Conditions (`if/else`), Functions (`args`, `return`).
 
-- Object-Oriented: Classes, Instances, Inheritance, Polymorphism (this).
+- Object-Oriented: Classes, Instances, Inheritance, Polymorphism (`this`).
 
-- Robust: Error handling (try/catch, throw, assert).
+- Robust: Error handling (`try/catch`, `throw`, `assert`).
 
 - Standard Library:
 
-    - Math: sqrt, random, round, PI...
+    - Math: `sqrt`, `random`, `round`, `PI`...
 
-    - String: split, replace, concat, parse_json...
+    - String: `split`, `replace`, `concat`, `parse_json`...
 
-    - System: exec (shell), fs (read/write files), time, os.
+    - System: `exec` (shell), `fs` (read/write files), `time`, `os`.
 
-    - Network: HTTP Client (get, post).
+    - Network: HTTP Client (`get`, `post`).
 
 - Portable: No external dependencies (uses only Python standard library).
 
