@@ -44,6 +44,10 @@ class InstructionFactory:
         elif command_type == "break":
             return BreakInstruction()
         
+        elif command_type == "continue":
+            # Syntax: ["continue"]
+            return ContinueInstruction()
+        
         elif command_type == "while":
             # Syntax: ["while", [condition expression], [ [inst1], [inst2] ]]
             if len(raw_instruction) < 3: raise ValueError("Invalid while loop.")
